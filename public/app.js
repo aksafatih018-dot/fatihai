@@ -1,113 +1,113 @@
-const $ = (id) => document.getElementById(id);
-const input = $("promptInput");
-const messagesEl = $("messages");
-const welcome = $("welcome");
-const sendBtn = $("sendBtn");
-let history = [];
 
-const modePrompts = {
-  chat: "",
-  study: "Bertindaklah sebagai tutor yang sabar. Jelaskan dengan bahasa sederhana, contoh, lalu cek pemahaman saya. Permintaan saya: ",
-  coding: "Bertindaklah sebagai mentor pemrograman. Berikan kode yang aman, komentar, dan langkah menjalankannya. Permintaan saya: ",
-  writer: "Bantu saya menulis dengan bahasa yang jelas dan rapi. Permintaan saya: ",
-  translate: "Terjemahkan teks saya secara akurat. Jelaskan istilah sulit jika perlu. Teks: ",
-  summary: "Ringkas materi berikut menjadi poin-poin utama yang mudah dipahami. Materi: "
-};
-let currentMode = "chat";
+const messagesEl = document.getElementById("messages");
+const input = document.getElementById("messageInput");
+const form = document.getElementById("chatForm");
+const welcome = document.getElementById("welcome");
+const newChatBtn = document.getElementById("newChat");
+const historyEl = document.getElementById("history");
 
-function addMessage(role, content, extraClass = "") {
-  welcome.hidden = true;
-  const row = document.createElement("div");
-  row.className = `message ${role}`;
-  const avatar = document.createElement("div");
-  avatar.className = "avatar";
-  avatar.textContent = role === "user" ? "K" : "F";
-  const bubble = document.createElement("div");
-  bubble.className = `bubble ${extraClass}`;
-  bubble.textContent = content;
-  row.append(avatar, bubble);
-  messagesEl.append(row);
-  $("chatArea").scrollTop = $("chatArea").scrollHeight;
-  return bubble;
+let chats = JSON.parse(localStorage.getItem("fatihai_chats") || "[]");
+let currentChat = [];
+
+function saveChats() {
+  localStorage.setItem("fatihai_chats", JSON.stringify(chats));
 }
 
-function saveHistory() {
-  try { localStorage.setItem("fatihai-history", JSON.stringify(history.slice(-30))); } catch {}
+function addMessage(role, content) {
+  const div = document.createElement("div");
+  div.className = "message " + role;
+  div.textContent = content;
+  messagesEl.appendChild(div);
 }
-function loadHistory() {
-  try {
-    const saved = JSON.parse(localStorage.getItem("fatihai-history") || "[]");
-    if (Array.isArray(saved)) {
-      history = saved.filter(m => m && ["user","assistant"].includes(m.role) && typeof m.content === "string");
-      history.forEach(m => addMessage(m.role, m.content));
-    }
-  } catch { history = []; }
+
+function renderMessages() {
+  messagesEl.innerHTML = "";
+  welcome.style.display = currentChat.length ? "none" : "block";
+
+  currentChat.forEach(message => {
+    addMessage(message.role, message.content);
+  });
 }
-async function sendMessage(text) {
-  const clean = text.trim();
-  if (!clean || sendBtn.disabled) return;
-  const outgoing = (modePrompts[currentMode] || "") + clean;
+
+function renderHistory() {
+  historyEl.innerHTML = "";
+
+  chats.forEach((chat, index) => {
+    const button = document.createElement("button");
+    button.className = "history-item";
+    button.style.cssText =
+      "display:block;width:100%;border:0;background:transparent;text-align:left;color:#ccc;cursor:pointer";
+
+    button.textContent = chat[0]?.content?.slice(0, 25) || "Percakapan";
+    button.onclick = () => {
+      currentChat = [...chat];
+      renderMessages();
+    };
+
+    historyEl.appendChild(button);
+  });
+}
+
+function saveCurrentChat() {
+  if (!currentChat.length) return;
+
+  chats.unshift([...currentChat]);
+  chats = chats.slice(0, 20);
+  saveChats();
+  renderHistory();
+}
+
+form.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const text = input.value.trim();
+  if (!text) return;
+
+  currentChat.push({ role: "user", content: text });
+  addMessage("user", text);
+
   input.value = "";
-  input.style.height = "auto";
-  history.push({ role: "user", content: outgoing });
-  addMessage("user", clean);
-  const pending = addMessage("assistant", "FatihAi sedang berpikir...");
-  sendBtn.disabled = true;
+  welcome.style.display = "none";
+
+  const loading = document.createElement("div");
+  loading.className = "message assistant";
+  loading.textContent = "FatihAi sedang memeriksa koneksi...";
+  messagesEl.appendChild(loading);
+
   try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: history.slice(-12) })
-    });
+    const response = await fetch(
+      new URL("api/chat", window.location.href),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: currentChat })
+      }
+    );
+
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Permintaan gagal.");
-    pending.textContent = data.reply;
-    history.push({ role: "assistant", content: data.reply });
-    saveHistory();
-  } catch (err) {
-    pending.textContent = err.message || "Terjadi kesalahan. Coba lagi.";
-    pending.classList.add("error");
-    history.pop();
-  } finally {
-    sendBtn.disabled = false;
-    input.focus();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Server AI belum tersedia.");
+    }
+
+    loading.remove();
+
+    const reply = data.reply || "Belum ada jawaban.";
+    currentChat.push({ role: "assistant", content: reply });
+    addMessage("assistant", reply);
+  } catch (error) {
+    loading.textContent =
+      "AI belum terhubung. Tampilan chat sudah aktif, tetapi backend AI FatihAi belum dipasang.";
   }
-}
-sendBtn.addEventListener("click", () => sendMessage(input.value));
-input.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input.value); }
-});
-input.addEventListener("input", () => {
-  input.style.height = "auto";
-  input.style.height = Math.min(input.scrollHeight, 140) + "px";
-});
-document.querySelectorAll(".suggestion").forEach(btn => btn.addEventListener("click", () => {
-  input.value = btn.dataset.prompt || "";
-  input.focus();
-  input.style.height = "auto";
-  input.style.height = Math.min(input.scrollHeight, 140) + "px";
-}));
-document.querySelectorAll(".nav-item").forEach(btn => btn.addEventListener("click", () => {
-  currentMode = btn.dataset.mode;
-  document.querySelectorAll(".nav-item").forEach(b => b.classList.toggle("active", b === btn));
-  $("sidebar").classList.remove("open");
-  const names = {chat:"AI Chat",study:"AI Study",coding:"AI Coding",writer:"AI Writer",translate:"Translator",summary:"Summarizer"};
-  input.placeholder = `Tulis permintaan untuk ${names[currentMode]}...`;
-}));
-$("newChat").addEventListener("click", () => {
-  history = [];
-  messagesEl.replaceChildren();
-  welcome.hidden = false;
-  localStorage.removeItem("fatihai-history");
-  $("sidebar").classList.remove("open");
-});
-$("clearChat").addEventListener("click", () => $("newChat").click());
-$("menuBtn").addEventListener("click", () => $("sidebar").classList.toggle("open"));
 
-fetch("/api/status").then(r => r.json()).then(data => {
-  $("apiStatus").textContent = data.ready ? "AI API siap" : "API belum diatur";
-  $("apiStatus").previousElementSibling.classList.toggle("ready", data.ready);
-}).catch(() => { $("apiStatus").textContent = "Server belum tersambung"; });
+  saveCurrentChat();
+});
 
-loadHistory();
-if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+newChatBtn.addEventListener("click", () => {
+  saveCurrentChat();
+  currentChat = [];
+  renderMessages();
+});
+
+renderHistory();
+renderMessages();
