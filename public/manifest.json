@@ -1,0 +1,10 @@
+{
+  "name": "FatihAi",
+  "short_name": "FatihAi",
+  "description": "Asisten AI serbaguna",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090d",
+  "theme_color": "#09090d",
+  "icons": [{"src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}]
+}
