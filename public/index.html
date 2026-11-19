@@ -1,62 +1,45 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#09090d">
-  <meta name="description" content="FatihAi - asisten AI serbaguna.">
-  <link rel="manifest" href="/manifest.json">
-  <link rel="icon" href="/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css">
-  <title>FatihAi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090909">
+  <title>FatihAi - AI Assistant</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar" id="sidebar">
-      <div class="brand"><div class="brand-mark">F</div><div><strong>Fatih<span>Ai</span></strong><small>YOUR AI ASSISTANT</small></div></div>
-      <button class="new-chat" id="newChat">＋ Percakapan baru</button>
-      <div class="side-label">MENU AI</div>
-      <button class="nav-item active" data-mode="chat">✦ <span>AI Chat</span></button>
-      <button class="nav-item" data-mode="study">▤ <span>AI Study</span></button>
-      <button class="nav-item" data-mode="coding">⌘ <span>AI Coding</span></button>
-      <button class="nav-item" data-mode="writer">✎ <span>AI Writer</span></button>
-      <button class="nav-item" data-mode="translate">文 <span>Translator</span></button>
-      <button class="nav-item" data-mode="summary">≡ <span>Summarizer</span></button>
-      <div class="sidebar-bottom"><div class="status-dot"></div><span id="apiStatus">Memeriksa koneksi...</span></div>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">Fatih<span>Ai</span></div>
+      <button class="new-chat" id="newChat">+ Chat Baru</button>
+      <h4>RIWAYAT CHAT</h4>
+      <div id="history"></div>
     </aside>
 
     <main class="main">
       <header class="topbar">
-        <button class="icon-btn mobile-menu" id="menuBtn" aria-label="Buka menu">☰</button>
-        <div class="top-title">FatihAi <span class="model-pill">AI ASSISTANT</span></div>
-        <button class="icon-btn" id="clearChat" title="Hapus percakapan">⌫</button>
+        <strong>FatihAi Assistant</strong>
+        <span class="status">● UI ONLINE</span>
       </header>
 
-      <section class="chat-area" id="chatArea">
+      <section class="chat-container">
         <div class="welcome" id="welcome">
-          <div class="orb">F</div>
-          <p class="eyebrow">SELAMAT DATANG DI FATIHAI</p>
-          <h1>Apa yang ingin<br><span>kamu kerjakan?</span></h1>
-          <p class="welcome-copy">Teman AI untuk belajar, menulis, coding, menerjemahkan, dan mencari ide.</p>
-          <div class="suggestions">
-            <button class="suggestion" data-prompt="Jelaskan pelajaran matematika dengan contoh sederhana."><b>▤</b><span><strong>Bantu belajar</strong><small>Jelaskan materi sekolah</small></span></button>
-            <button class="suggestion" data-prompt="Bantu saya membuat website sederhana. Berikan langkah dan kode."><b>⌘</b><span><strong>Buat kode</strong><small>Mulai proyek programming</small></span></button>
-            <button class="suggestion" data-prompt="Bantu saya menulis teks yang rapi dan mudah dipahami."><b>✎</b><span><strong>Menulis teks</strong><small>Ide, tulisan, dan revisi</small></span></button>
-            <button class="suggestion" data-prompt="Terjemahkan teks berikut ke Bahasa Indonesia dan jelaskan maknanya:"><b>文</b><span><strong>Terjemahkan</strong><small>Berbagai bahasa</small></span></button>
-          </div>
+          <h1>Halo, selamat datang di <span>FatihAi</span></h1>
+          <p>Asisten AI untuk belajar, coding, menulis, dan berkreasi.</p>
         </div>
-        <div class="messages" id="messages" aria-live="polite"></div>
-      </section>
 
-      <footer class="composer-wrap">
-        <div class="composer">
-          <textarea id="promptInput" rows="1" maxlength="6000" placeholder="Tanyakan apa saja kepada FatihAi..."></textarea>
-          <button class="send-btn" id="sendBtn" aria-label="Kirim pesan">➤</button>
-        </div>
-        <p class="disclaimer">FatihAi dapat membuat kesalahan. Periksa kembali informasi penting.</p>
-      </footer>
+        <div id="messages"></div>
+
+        <form class="composer" id="chatForm">
+          <textarea id="messageInput" placeholder="Tanyakan sesuatu kepada FatihAi..." required></textarea>
+          <button type="submit">➤</button>
+        </form>
+      </section>
     </main>
   </div>
-  <script src="/app.js"></script>
+
+  <script src="app.js"></script>
 </body>
 </html>
